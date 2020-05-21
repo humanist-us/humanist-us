@@ -1,208 +1,127 @@
 /*
-	Paradigm Shift by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+	Road Trip by TEMPLATED
+	templated.co @templatedco
+	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
 */
 
 (function($) {
 
-	var	$window = $(window),
-		$body = $('body');
+	skel.breakpoints({
+		xlarge:	'(max-width: 1680px)',
+		large:	'(max-width: 1280px)',
+		medium:	'(max-width: 980px)',
+		small:	'(max-width: 736px)',
+		xsmall:	'(max-width: 480px)'
+	});
 
-	// Breakpoints.
-		breakpoints({
-			default:   ['1681px',   null       ],
-			xlarge:    ['1281px',   '1680px'   ],
-			large:     ['981px',    '1280px'   ],
-			medium:    ['737px',    '980px'    ],
-			small:     ['481px',    '736px'    ],
-			xsmall:    ['361px',    '480px'    ],
-			xxsmall:   [null,       '360px'    ]
-		});
+	$(function() {
 
-	// Play initial animations on page load.
-		$window.on('load', function() {
-			window.setTimeout(function() {
-				$body.removeClass('is-preload');
-			}, 100);
-		});
+		var	$window = $(window),
+			$body = $('body'),
+			$header = $('#header'),
+			$banner = $('#banner');
 
-	// Hack: Enable IE workarounds.
-		if (browser.name == 'ie')
-			$body.addClass('is-ie');
+		var $height = $('#header').height();
 
-	// Mobile?
-		if (browser.mobile)
-			$body.addClass('is-mobile');
+		// Disable animations/transitions until the page has loaded.
+			$body.addClass('is-loading');
 
-	// Scrolly.
-		$('.scrolly')
-			.scrolly({
-				offset: 100
+			$window.on('load', function() {
+				window.setTimeout(function() {
+					$body.removeClass('is-loading');
+				}, 100);
 			});
 
-	// Polyfill: Object fit.
-		if (!browser.canUse('object-fit')) {
+		// Fix: Placeholder polyfill.
+			$('form').placeholder();
 
-			$('.image[data-position]').each(function() {
+		// Prioritize "important" elements on medium.
+			skel.on('+medium -medium', function() {
+				$.prioritize(
+					'.important\\28 medium\\29',
+					skel.breakpoint('medium').active
+				);
+			});
 
-				var $this = $(this),
-					$img = $this.children('img');
+		// Banner
 
-				// Apply img as background.
-					$this
-						.css('background-image', 'url("' + $img.attr('src') + '")')
-						.css('background-position', $this.data('position'))
-						.css('background-size', 'cover')
-						.css('background-repeat', 'no-repeat');
+			if ($banner.length > 0) {
 
-				// Hide img.
-					$img
-						.css('opacity', '0');
+				// IE: Height fix.
+					if (skel.vars.browser == 'ie'
+					&&	skel.vars.IEVersion > 9) {
+
+						skel.on('-small !small', function() {
+							$banner.css('height', '100vh');
+						});
+
+						skel.on('+small', function() {
+							$banner.css('height', '');
+						});
+
+					}
+
+				// More button.
+					$banner.find('.more')
+						.addClass('scrolly');
+
+			}
+
+
+		// Get BG Image
+
+			if ( $( ".bg-img" ).length ) {
+
+				$( ".bg-img" ).each(function() {
+
+					var post 	= $(this),
+						bg 		= post.data('bg');
+
+					post.css( 'background-image', 'url(images/' + bg + ')' );
+
+				});
+
+
+			}
+
+		// Posts
+
+			$( ".post" ).each( function() {
+				var p = $(this),
+					i = p.find('.inner'),
+					m = p.find('.more');
+
+				m.addClass('scrolly');
+
+				p.scrollex({
+					top: '40vh',
+					bottom: '40vh',
+					terminate: 	function() { m.removeClass('current'); i.removeClass('current'); },
+					enter: 		function() { m.addClass('current'); i.addClass('current'); },
+					leave: 		function() { m.removeClass('current'); i.removeClass('current'); }
+				});
 
 			});
 
-			$('.gallery > a').each(function() {
+		// Scrolly.
+			if ( $( ".scrolly" ).length ) {
 
-				var $this = $(this),
-					$img = $this.children('img');
+				$('.scrolly').scrolly();
+			}
 
-				// Apply img as background.
-					$this
-						.css('background-image', 'url("' + $img.attr('src') + '")')
-						.css('background-position', 'center')
-						.css('background-size', 'cover')
-						.css('background-repeat', 'no-repeat');
+		// Menu.
+			$('#menu')
+				.append('<a href="#menu" class="close"></a>')
+				.appendTo($body)
+				.panel({
+					delay: 500,
+					hideOnClick: true,
+					hideOnSwipe: true,
+					resetScroll: true,
+					resetForms: true,
+					side: 'right'
+				});
 
-				// Hide img.
-					$img
-						.css('opacity', '0');
-
-			});
-
-		}
-
-	// Gallery.
-		$('.gallery')
-			.on('click', 'a', function(event) {
-
-				var $a = $(this),
-					$gallery = $a.parents('.gallery'),
-					$modal = $gallery.children('.modal'),
-					$modalImg = $modal.find('img'),
-					href = $a.attr('href');
-
-				// Not an image? Bail.
-					if (!href.match(/\.(jpg|gif|png|mp4)$/))
-						return;
-
-				// Prevent default.
-					event.preventDefault();
-					event.stopPropagation();
-
-				// Locked? Bail.
-					if ($modal[0]._locked)
-						return;
-
-				// Lock.
-					$modal[0]._locked = true;
-
-				// Set src.
-					$modalImg.attr('src', href);
-
-				// Set visible.
-					$modal.addClass('visible');
-
-				// Focus.
-					$modal.focus();
-
-				// Delay.
-					setTimeout(function() {
-
-						// Unlock.
-							$modal[0]._locked = false;
-
-					}, 600);
-
-			})
-			.on('click', '.modal', function(event) {
-
-				var $modal = $(this),
-					$modalImg = $modal.find('img');
-
-				// Locked? Bail.
-					if ($modal[0]._locked)
-						return;
-
-				// Already hidden? Bail.
-					if (!$modal.hasClass('visible'))
-						return;
-
-				// Stop propagation.
-					event.stopPropagation();
-
-				// Lock.
-					$modal[0]._locked = true;
-
-				// Clear visible, loaded.
-					$modal
-						.removeClass('loaded')
-
-				// Delay.
-					setTimeout(function() {
-
-						$modal
-							.removeClass('visible')
-
-						setTimeout(function() {
-
-							// Clear src.
-								$modalImg.attr('src', '');
-
-							// Unlock.
-								$modal[0]._locked = false;
-
-							// Focus.
-								$body.focus();
-
-						}, 475);
-
-					}, 125);
-
-			})
-			.on('keypress', '.modal', function(event) {
-
-				var $modal = $(this);
-
-				// Escape? Hide modal.
-					if (event.keyCode == 27)
-						$modal.trigger('click');
-
-			})
-			.on('mouseup mousedown mousemove', '.modal', function(event) {
-
-				// Stop propagation.
-					event.stopPropagation();
-
-			})
-			.prepend('<div class="modal" tabIndex="-1"><div class="inner"><img src="" /></div></div>')
-				.find('img')
-					.on('load', function(event) {
-
-						var $modalImg = $(this),
-							$modal = $modalImg.parents('.modal');
-
-						setTimeout(function() {
-
-							// No longer visible? Bail.
-								if (!$modal.hasClass('visible'))
-									return;
-
-							// Set loaded.
-								$modal.addClass('loaded');
-
-						}, 275);
-
-					});
+	});
 
 })(jQuery);
